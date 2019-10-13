@@ -255,6 +255,7 @@ int Json2Vector(const string filename, vector<vector<vector<float>>> &plist)
 	oJson.Parse(text);
 
 	// TODO: 此处应检查格式
+	// TODO: 考虑给CJsonObject添加迭代方法，否则遍历太慢
 	float x, y;
 	int i, j;
 	for (i = 0; i < oJson.GetArraySize(); i++)
@@ -296,11 +297,33 @@ void testV2R()
 	cout << Vector2Region(plist[0], region) << endl;
 }
 
+UGWorkspace *NewWorkspace(const wchar_t *filename)
+{
+	UGWorkspace *ws = new UGWorkspace;
+	UGWorkspaceConnection wc;
+	wc.m_strServer = filename;	// wstring不能直接转；可以是相对或绝对路径
+	wc.m_nVersion = UG_WORKSPACE_VERSION_20120328;
+	wc.m_nWorkspaceType = UGWorkspace::UGWorkspaceType::WS_Version_SMWU;
+	ws->SaveAs(wc);	// Save无法创建新文件，SaveAs后ws表示的是新建的文件
+	return ws;
+}
+
+UGDataSource *NewDatasource(UGWorkspace *ws)
+{
+
+}
+
+void testNew()
+{
+	UGWorkspace *ws = NewWorkspace(L"a.smwu");
+	ws;
+}
+
 int main()
 {
 	int n = 0;
 	cout << "输入测试对象：";
-	while (n < 1 || n > 4)
+	while (n < 1 || n > 5)
 		cin >> n;
 	cin.clear();
 	cin.ignore();
@@ -318,6 +341,9 @@ int main()
 		break;
 	case 4:
 		testV2R();
+		break;
+	case 5:
+		testNew();
 		break;
 	}
 	return 0;
