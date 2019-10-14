@@ -273,19 +273,18 @@ int Json2Vector(const string filename, vector<vector<vector<float>>> &plist)
 	return 0;
 }
 
-bool Vector2Region(const vector<vector<float>> &polygon, UGGeoRegion *region)
+UGGeoRegion *Vector2Region(const vector<vector<float>> &polygon)
 {
-	if (!region)
-		region = new UGGeoRegion;
-
 	int i;
 	vector<UGPoint2D> points;
+	UGGeoRegion *region = new UGGeoRegion;
+
 	for (i = 0; i < polygon.size(); i++)
 		points.push_back({ polygon[i][0],polygon[i][1] });
 	UGGeoRegion *subRegion = NULL;
-	cout << (region->GetSub(0, subRegion)?1:0) << endl;
-	cout << region->GetSubCount() << endl;
-	return region->InsertSub(0, points.data(), points.size());// 抛出异常
+	// 用InsertSub可以插入指定位置，但是无子对象时会因为找不到子对象而抛出异常
+	region->AddSub(points.data(), points.size());
+	return region;
 }
 
 void testV2R()
@@ -293,8 +292,8 @@ void testV2R()
 	vector<vector<vector<float>>> plist;
 	if (Json2Vector("D:\\_save\\satellite_seg\\results\\1_small_pred_poly_1.json", plist) < 0)
 		cout << "转换失败" << endl;
-	UGGeoRegion *region = NULL;
-	cout << Vector2Region(plist[0], region) << endl;
+	UGGeoRegion *region = Vector2Region(plist[0]);
+	cout << region << endl;
 }
 
 UGWorkspace *NewWorkspace(const wchar_t *filename)
@@ -310,7 +309,8 @@ UGWorkspace *NewWorkspace(const wchar_t *filename)
 
 UGDataSource *NewDatasource(UGWorkspace *ws)
 {
-
+	UGDataSource *ds = NULL;
+	return ds;
 }
 
 void testNew()
