@@ -302,21 +302,55 @@ UGWorkspace *NewWorkspace(const wchar_t *filename)
 	UGWorkspaceConnection wc;
 	wc.m_strServer = filename;	// wstring不能直接转；可以是相对或绝对路径
 	wc.m_nVersion = UG_WORKSPACE_VERSION_20120328;
-	wc.m_nWorkspaceType = UGWorkspace::UGWorkspaceType::WS_Version_SMWU;
-	ws->SaveAs(wc);	// Save无法创建新文件，SaveAs后ws表示的是新建的文件
+	wc.m_nWorkspaceType = UGWorkspace::WS_Version_SMWU;
+	// Save无法创建新文件
+	// SaveAs后ws表示的是新建的文件
+	if (!ws->SaveAs(wc))
+	{
+		delete ws;
+		return NULL;
+	}
 	return ws;
 }
 
-UGDataSource *NewDatasource(UGWorkspace *ws)
+UGDataSource *NewDatasource(const wchar_t *filename)
 {
-	UGDataSource *ds = NULL;
+	UGDataSource *ds = UGDataSourceManager::CreateDataSource(UGEngineType::UDB);
+	if (!ds)
+		return NULL;
+	UGDsConnection &con = ds->GetConnectionInfo();
+	con.m_strServer = filename;
+	con.m_bExclusive = true;	// 独占打开
+	if (!ds->Create())
+	{
+		delete ds;
+		return NULL;
+	}
 	return ds;
+}
+
+UGDatasetVector *NewDatasetVector(UGDataSource *ds, UGDataset::DatasetType type, const wchar_t *name)
+{
+	if (!ds)
+		return NULL;
+	UGDatasetVectorInfo dvi;
+	dvi.m_nType = type;
+	dvi.m_strName = name;
+	return ds->CreateDatasetVector(dvi);
 }
 
 void testNew()
 {
 	UGWorkspace *ws = NewWorkspace(L"a.smwu");
-	ws;
+	cout << "创建工作空间：" << (ws ? "成功" : "失败") << endl;
+	UGDataSource *ds = NewDatasource(L"a.udb");
+	cout << "创建数据源：" << (ds ? "成功" : "失败") << endl;
+	//ds->Close();	// 因为独占，需要先关闭
+	// 如何将数据源连接到工作空间并保存？
+	//cout<<int(ws->OpenDataSource(ds->GetConnectionInfo()));
+
+	UGDatasetVector *dv = NewDatasetVector(ds, UGDataset::Region, L"测试");
+	cout << "创建面数据集：" << (dv ? "成功" : "失败") << endl;
 }
 
 int main()
