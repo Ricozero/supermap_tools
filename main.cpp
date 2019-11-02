@@ -10,10 +10,12 @@ using namespace UGC;
 void testSuperMap()
 {
 	UGWorkspace workspace;
-	UGString workspacePath = _U("D:\\Program Files\\SuperMap iDesktop 9D\\SampleData\\China\\China100\\China.smwu");
+	//UGString workspacePath = _U("D:\\Program Files\\SuperMap iDesktop 9D\\SampleData\\China\\China100\\China.smwu");
+	UGString workspacePath = _U("a.smwu");
 	if (!workspace.Open(workspacePath))
 	{
 		cout << "工作空间打开失败，可能被其他程序占用！" << endl;
+		return;
 	}
 	cout << "工作空间共包含：" << endl;
 	cout << workspace.m_DataSources.GetCount() << "个数据源" << endl;
@@ -24,6 +26,7 @@ void testSuperMap()
 	if (!dataSource->Open())
 	{
 		cout << "数据源打开失败，可能被其他程序占用！" << endl;
+		return;
 	}
 	cout << "打开第一个数据源，共包含：" << endl;
 	cout << dataSource->GetDatasetCount() << "个数据集" << endl;
@@ -48,6 +51,7 @@ void testSuperMap()
 	if (!dataSet->Open())
 	{
 		cout << "数据集打开失败！" << endl;
+		return;
 	}
 	cout << "打开索引为" << i << "的数据集（" << (dataSet->IsVector() ? "是" : "不是") << "矢量）" << endl;
 
@@ -322,7 +326,8 @@ UGDataSource *NewDataSource(const wchar_t *filename)
 		return NULL;
 	UGDsConnection &con = ds->GetConnectionInfo();
 	con.m_strServer = filename;
-	con.m_bExclusive = true;	// 独占打开
+	//con.m_strAlias = filename;	// 只决定当次打开时的显示名称
+	//con.m_bExclusive = true;		// 独占打开
 	if (!ds->Create())
 	{
 		delete ds;
@@ -354,36 +359,45 @@ void testNew()
 	UGDatasetVector *dv = NewDatasetVector(ds, UGDataset::Region, L"测试");
 	cout << "创建面数据集：" << (dv ? "成功" : "失败") << endl;
 
-	vector<vector<vector<float>>> plist;
-	if (Json2Vector("D:\\_save\\satellite_seg\\results\\1_small_pred_poly_1.json", plist) < 0)
-		cout << "转换失败" << endl;
-	UGGeoRegion *region;
-	UGGeometry *geo = NULL;
-	UGQueryDef query;
-	UGRecordset *rs = dv->Query(query);
-	int i;
-	cout << (rs->GetGeometry(geo) ? 1 : 0) << ' ';
-	cout << geo << endl;
-	for (i = 0; i < plist.size(); i++)
+	if (dv)
 	{
-		region = Vector2Region(plist[i]);
-		// AddNew不需要先调用Edit
-		// AddNew后recordset会自动更新
-		rs->AddNew(region);
-		// 每次AddNew都应调用Update
-		delete region;
-		rs->Update();
-		region = NULL;
-		// 如果写成(UGGeometry *)region，类型转换形成一个临时变量
-		// 所以引用传进去是临时变量的引用，引用失效，会报错
-		cout << (rs->GetGeometry(geo) ? 1 : 0) << ' ';
-		cout << geo << endl;
+		vector<vector<vector<float>>> plist;
+		if (Json2Vector("D:\\_save\\satellite_seg\\results\\1_small_pred_poly_1.json", plist) < 0)
+			cout << "转换失败" << endl;
+		UGGeoRegion *region;
+		UGGeometry *geo = NULL;
+		UGQueryDef query;
+		UGRecordset *rs = dv->Query(query);
+		int i;
+		//cout << (rs->GetGeometry(geo) ? 1 : 0) << ' ';
+		//cout << geo << endl;
+		for (i = 0; i < plist.size(); i++)
+		{
+			region = Vector2Region(plist[i]);
+			// AddNew不需要先调用Edit
+			// AddNew后recordset会自动更新
+			rs->AddNew(region);
+			// 每次AddNew都应调用Update
+			delete region;
+			rs->Update();
+			region = NULL;
+			// 测试输出
+			// 如果写成(UGGeometry *)region，类型转换形成一个临时变量
+			// 所以引用传进去是临时变量的引用，引用失效，会报错
+			//cout << (rs->GetGeometry(geo) ? 1 : 0) << ' ';
+			//cout << geo << endl;
+		}
 	}
 }
 
 UGWorkspace *OpenWorkspace(const wchar_t *filename)
 {
 	UGWorkspace *ws = new UGWorkspace;
+	// 进行成员变量的设置，后面调用Save即可保存
+	ws->m_WorkspaceConnection.m_strServer = filename;
+	ws->m_WorkspaceConnection.m_nVersion = UG_WORKSPACE_VERSION_20120328;
+	ws->m_WorkspaceConnection.m_nWorkspaceType = UGWorkspace::WS_Version_SMWU;
+	ws->m_WorkspaceConnection.m_bFailIfExists = false;
 	if (!ws->Open(filename))
 	{
 		delete ws;
@@ -392,8 +406,9 @@ UGWorkspace *OpenWorkspace(const wchar_t *filename)
 	return ws;
 }
 
-// 此函数不可用，无法单独打开数据源
+// *此函数不可用*
 // 意图是数据源和工作空间未建立联系时直接打开数据源
+// 结果是无法单独打开数据源
 UGDataSource *OpenDataSource(const wchar_t *filename)
 {
 	UGDataSource *ds = new UGDataSource;
@@ -412,25 +427,25 @@ UGDataSource *OpenDataSource(const wchar_t *filename)
 		return ds;
 }
 
-void testPoly2SM()
+void testSave()
 {
 	UGDataSource *ds = NULL;
 	UGWorkspace *ws = OpenWorkspace(L"a.smwu");
 	UGDsConnection con;
 	con.m_nType = UGEngineType::UDB;
 	con.m_strServer = L"a.udb";
-	cout<<(ds = ws->OpenDataSource(con))<<endl;	// 保存后，工作空间和数据源的联系即保存
+	//con.m_strAlias = L"";	//决定了显示名称
+	cout << "打开数据源：" << ((ds = ws->OpenDataSource(con)) ? "成功" : "失败") << endl;
+	
 	//cout << (ws->IsModified() ? 1 : 0) << endl;
-	//ws->Close();
-	//ds->Close();
-	ws->SetModifiedFlag(true);
-	ws->m_WorkspaceConnection.m_strServer = L"b.smwu";
+	//ws->SetModifiedFlag(true);
+	ws->m_WorkspaceConnection.m_strServer = L"a.smwu";
 	ws->m_WorkspaceConnection.m_nVersion = UG_WORKSPACE_VERSION_20120328;
 	ws->m_WorkspaceConnection.m_nWorkspaceType = UGWorkspace::WS_Version_SMWU;
 	ws->m_WorkspaceConnection.m_bFailIfExists = false;
 	// Save的逻辑是，如果bModified是false，不管m_WorkspaceConnection的信息，直接返回1
 	// 如果bModified是true，通过m_WorkspaceConnection的信息保存
-	cout<<(ws->Save()?1:0)<<endl;
+	cout << "保存工作空间：" << (ws->Save() ? "成功" : "失败") << endl;
 }
 
 int main()
@@ -462,7 +477,7 @@ int main()
 		testNew();
 		break;
 	case 6:
-		testPoly2SM();
+		testSave();
 		break;
 	}
 	return 0;
