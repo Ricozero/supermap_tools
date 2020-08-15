@@ -7,11 +7,13 @@
 #include "json/CJsonObject.hpp"
 using namespace UGC;
 
+/*
 void testSuperMap()
 {
 	UGWorkspace workspace;
 	//UGString workspacePath = _U("D:\\Program Files\\SuperMap iDesktop 9D\\SampleData\\China\\China100\\China.smwu");
-	UGString workspacePath = _U("a.smwu");
+	//UGString workspacePath = _U("a.smwu");
+	UGString workspacePath = _U("H:\\Tiexin-data\\tr.smwu");
 	if (!workspace.Open(workspacePath))
 	{
 		cout << "工作空间打开失败，可能被其他程序占用！" << endl;
@@ -94,7 +96,7 @@ void testSuperMap()
 	cout << "更新记录集，结果为：" << (recordset->Update() ? "成功" : "失败") << endl;
 
 	delete pGeometry;
-}
+}*/
 
 void testJson()
 {
@@ -448,10 +450,15 @@ void testSave()
 	cout << "保存工作空间：" << (ws->Save() ? "成功" : "失败") << endl;
 }
 
+void testRaster()
+{
+	UGWorkspace* ws = OpenWorkspace(_U("H:\\Tiexin-data\\tr.smwu"));
+}
+
 int main()
 {
 	int n = 0;
-	while (n < 1 || n > 6)
+	while (n < 1 || n > 7)
 	{
 		cout << "输入测试对象：";
 		cin >> n;
@@ -462,7 +469,7 @@ int main()
 	switch (n)
 	{
 	case 1:
-		testSuperMap();
+		//testSuperMap();
 		break;
 	case 2:
 		testJson();
@@ -478,6 +485,9 @@ int main()
 		break;
 	case 6:
 		testSave();
+		break;
+	case 7:
+		testRaster();
 		break;
 	}
 	return 0;

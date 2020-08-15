@@ -78,12 +78,12 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\_save\supermap-iobjectscpp-9.1.0\include\private;D:\_save\supermap-iobjectscpp-9.1.0\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\_save\supermap-iobjectscpp-10.0.1\include\private;D:\_save\supermap-iobjectscpp-10.0.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_UGUNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalLibraryDirectories>D:\_save\supermap-iobjectscpp-9.1.0\lib\libd;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\_save\supermap-iobjectscpp-10.0.1\lib\libd;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>SuToolkitd.lib;SuElementd.lib;SuOGDCd.lib;SuBased.lib;SuWorkspaced.lib;SuSpatialIndexd.lib;SuEngined.lib;SuGraphicsd.lib;SuMapd.lib;SuChartBased.lib;SuBase3Dd.lib;SuGeometryd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
