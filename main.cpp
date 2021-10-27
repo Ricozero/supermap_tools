@@ -7,7 +7,6 @@
 #include "json/CJsonObject.hpp"
 using namespace UGC;
 
-/*
 void testSuperMap()
 {
 	UGWorkspace workspace;
@@ -30,26 +29,24 @@ void testSuperMap()
 		cout << "数据源打开失败，可能被其他程序占用！" << endl;
 		return;
 	}
-	cout << "打开第一个数据源，共包含：" << endl;
-	cout << dataSource->GetDatasetCount() << "个数据集" << endl;
-	cout << endl;
-
-	UGDatasets *dataSets = dataSource->GetDatasets();
-	UGDataset **dataSetsP = dataSets->GetData();
-	UGDataset *dataSet;
-	int i;
+	cout << "打开第一个数据源，共包含" << dataSource->GetDatasetCount() << "个数据集" << endl;
 	cout << "各个数据集信息：" << endl;
+	UGDatasets *datasets = dataSource->GetDatasets();
+	UGDataset *dataset;
+	int i;
+	cout << "编号\t类型\t名称" << endl;
 	for (i = 0; i < dataSource->GetDatasetCount(); i++)
 	{
-		dataSet = dataSetsP[i];
-		wcout << i << "：类型为" << dataSet->GetType()
-			<< "，名称为" << dataSet->GetName().Cstr()
-			<< "，表名为" << dataSet->GetTableName().Cstr()
+		dataset = (*datasets)[i];
+		cout << i << "\t";
+		wcout.imbue(locale("chs"));
+		wcout << dataset->GetType() <<"\t"
+			<< dataset->GetName().Cstr()
 			<< endl;
 	}
-
+	/*
 	i = 5;
-	dataSet = dataSetsP[i];
+	dataset = dataSetsP[i];
 	if (!dataSet->Open())
 	{
 		cout << "数据集打开失败！" << endl;
@@ -96,7 +93,8 @@ void testSuperMap()
 	cout << "更新记录集，结果为：" << (recordset->Update() ? "成功" : "失败") << endl;
 
 	delete pGeometry;
-}*/
+	*/
+}
 
 void testJson()
 {
@@ -453,6 +451,30 @@ void testSave()
 void testRaster()
 {
 	UGWorkspace* ws = OpenWorkspace(_U("H:\\Tiexin-data\\tr.smwu"));
+	UGDataSource* dataSource = ws->GetDataSource(0);
+	UGDatasets* datasets = dataSource->GetDatasets();
+	UGDataset* dataset = (*datasets)[0];
+	UGDatasetRaster* rds = (UGDatasetRaster*)dataset;
+	UGDatasetRasterInfo* rdsi = rds->GetInfo();
+	cout << rds->GetBandCount() << endl;
+	cout << rds->GetColorSpace() << endl;
+	cout << rds->GetWidth() << " " << rds->GetHeight() << endl;
+	rds->Open();
+	int x = 0, y = 0;
+	UGColor c;
+	cout << "像素测试：" << endl;
+	while (1)
+	{
+		cin >> x >> y;
+		// 当0<=x<width， 0<=y<height，返回max int，其余情况返回0
+		c = rds->GetPixel(x, y);
+		cout << (c>>24) << " " << (c<<8>>24) << " " << (c<<16>>24) << " " << (c<<24>>24) << endl;
+		UGPoint2D p;
+		rds->ImgToXY(UGPoint(x, y), p);
+		cout << p.x << " " << p.y << endl;
+		cout << endl;
+	}
+	return;
 }
 
 int main()
@@ -469,7 +491,7 @@ int main()
 	switch (n)
 	{
 	case 1:
-		//testSuperMap();
+		testSuperMap();
 		break;
 	case 2:
 		testJson();
